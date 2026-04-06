@@ -126,15 +126,6 @@ void LuaParser::SetupEnv(bool isSyncedCtxt, bool isDefsParser)
 {
 	LuaLibs::OpenSynced(L, false);
 
-	// delete some dangerous/unsynced functions
-	lua_pushnil(L); lua_setglobal(L, "dofile");
-	lua_pushnil(L); lua_setglobal(L, "loadfile");
-	lua_pushnil(L); lua_setglobal(L, "loadlib");
-	lua_pushnil(L); lua_setglobal(L, "require");
-	lua_pushnil(L); lua_setglobal(L, "gcinfo");
-	lua_pushnil(L); lua_setglobal(L, "collectgarbage");
-	lua_pushnil(L); lua_setglobal(L, "newproxy"); // not sync-safe cause of __gc
-
 	{
 		lua_getglobal(L, "math");
 		LuaMathExtra::PushEntries(L);

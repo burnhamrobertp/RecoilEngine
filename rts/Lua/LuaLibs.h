@@ -13,4 +13,8 @@ namespace LuaLibs {
 	 * including those only usable from unsynced. */
 	void OpenUnsynced(lua_State* L);
 
+	/** Removes functions not suitable for unsynced but
+	 * VFS-restricted envs (i.e. unsynced LuaRules). */
+	void RemoveVfsUnsafe(lua_State* L);
+
 } // namespace LuaLibs

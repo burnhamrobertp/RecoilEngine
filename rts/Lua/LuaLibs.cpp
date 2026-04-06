@@ -18,26 +18,55 @@ static void RemoveMethods(lua_State* L, const char *lib, const std::initializer_
 	lua_pop(L, 1);
 }
 
+static void RemoveGlobals(lua_State* L, const std::initializer_list <const char *> &globals)
+{
+	for (const auto &global : globals) {
+		lua_pushnil(L);
+		lua_setglobal(L, global);
+	}
+}
+
+static void OpenSyncedImpl(lua_State* L, bool registerCreg)
+{
+	if (registerCreg) {
+		SPRING_LUA_OPEN_LIB(L, luaopen_base);
+		SPRING_LUA_OPEN_LIB(L, luaopen_math);
+		SPRING_LUA_OPEN_LIB(L, luaopen_table);
+		SPRING_LUA_OPEN_LIB(L, luaopen_string);
+	} else {
+		LUA_OPEN_LIB(L, luaopen_base);
+		LUA_OPEN_LIB(L, luaopen_math);
+		LUA_OPEN_LIB(L, luaopen_table);
+		LUA_OPEN_LIB(L, luaopen_string);
+	}
+}
+
 namespace LuaLibs {
+
+	void RemoveVfsUnsafe(lua_State* L)
+	{
+		RemoveGlobals(L,
+			{ "dofile"
+			, "loadfile"
+			, "loadlib"
+			, "require"
+		});
+	}
 
 	void OpenSynced(lua_State* L, bool registerCreg)
 	{
-		if (registerCreg) {
-			SPRING_LUA_OPEN_LIB(L, luaopen_base);
-			SPRING_LUA_OPEN_LIB(L, luaopen_math);
-			SPRING_LUA_OPEN_LIB(L, luaopen_table);
-			SPRING_LUA_OPEN_LIB(L, luaopen_string);
-		} else {
-			LUA_OPEN_LIB(L, luaopen_base);
-			LUA_OPEN_LIB(L, luaopen_math);
-			LUA_OPEN_LIB(L, luaopen_table);
-			LUA_OPEN_LIB(L, luaopen_string);
-		}
+		OpenSyncedImpl(L, registerCreg);
+		RemoveVfsUnsafe(L);
+		RemoveGlobals(L,
+			{ "newproxy" // sync unsafe cause of __gc
+			, "gcinfo"
+			, "collectgarbage"
+		});
 	}
 
 	void OpenUnsynced(lua_State* L)
 	{
-		OpenSynced(L, false);
+		OpenSyncedImpl(L, false);
 		LUA_OPEN_LIB(L, luaopen_io);
 		LUA_OPEN_LIB(L, luaopen_os);
 		LUA_OPEN_LIB(L, luaopen_debug);

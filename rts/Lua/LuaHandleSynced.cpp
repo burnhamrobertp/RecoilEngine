@@ -89,13 +89,7 @@ bool CUnsyncedLuaHandle::Init(std::string code, const std::string& file)
 
 	// load the standard libraries
 	LuaLibs::OpenUnsynced(L);
-
-	// delete some dangerous functions
-	lua_pushnil(L); lua_setglobal(L, "dofile");
-	lua_pushnil(L); lua_setglobal(L, "loadfile");
-	lua_pushnil(L); lua_setglobal(L, "loadlib");
-	lua_pushnil(L); lua_setglobal(L, "loadstring"); // replaced
-	lua_pushnil(L); lua_setglobal(L, "require");
+	LuaLibs::RemoveVfsUnsafe(L);
 
 	lua_pushvalue(L, LUA_GLOBALSINDEX);
 
@@ -437,20 +431,6 @@ bool CSyncedLuaHandle::Init(std::string code, const std::string& file)
 
 	lua_getglobal(L, "next");
 	origNextRef = luaL_ref(L, LUA_REGISTRYINDEX);
-
-	// delete/replace some dangerous functions
-	lua_pushnil(L); lua_setglobal(L, "dofile");
-	lua_pushnil(L); lua_setglobal(L, "loadfile");
-	lua_pushnil(L); lua_setglobal(L, "loadlib");
-	lua_pushnil(L); lua_setglobal(L, "require");
-	lua_pushnil(L); lua_setglobal(L, "rawequal"); //FIXME not unsafe anymore since split?
-	lua_pushnil(L); lua_setglobal(L, "rawget"); //FIXME not unsafe anymore since split?
-	lua_pushnil(L); lua_setglobal(L, "rawset"); //FIXME not unsafe anymore since split?
-//	lua_pushnil(L); lua_setglobal(L, "getfenv");
-//	lua_pushnil(L); lua_setglobal(L, "setfenv");
-	lua_pushnil(L); lua_setglobal(L, "newproxy"); // sync unsafe cause of __gc
-	lua_pushnil(L); lua_setglobal(L, "gcinfo");
-	lua_pushnil(L); lua_setglobal(L, "collectgarbage");
 
 	lua_pushvalue(L, LUA_GLOBALSINDEX);
 	LuaPushNamedCFunc(L, "loadstring", CLuaHandle::LoadStringData);
